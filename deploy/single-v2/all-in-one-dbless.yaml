@@ -6,11 +6,10 @@ metadata:
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
-  creationTimestamp: null
   name: kongclusterplugins.configuration.konghq.com
 spec:
+  conversion:
+    strategy: None
   group: configuration.konghq.com
   names:
     kind: KongClusterPlugin
@@ -44,96 +43,43 @@ spec:
     name: v1
     schema:
       openAPIV3Schema:
-        description: KongClusterPlugin is the Schema for the kongclusterplugins API
         properties:
-          apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-            type: string
           config:
-            description: Config contains the plugin configuration.
             type: object
             x-kubernetes-preserve-unknown-fields: true
           configFrom:
-            description: ConfigFrom references a secret containing the plugin configuration.
             properties:
-              apiVersion:
-                description: 'APIVersion defines the versioned schema of this representation
-                  of an object. Servers should convert recognized schemas to the latest
-                  internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-                type: string
-              kind:
-                description: 'Kind is a string value representing the REST resource
-                  this object represents. Servers may infer this from the endpoint
-                  the client submits requests to. Cannot be updated. In CamelCase.
-                  More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-                type: string
               secretKeyRef:
-                description: NamespacedSecretValueFromSource represents the source
-                  of a secret value specifying the secret namespace
                 properties:
-                  apiVersion:
-                    description: 'APIVersion defines the versioned schema of this
-                      representation of an object. Servers should convert recognized
-                      schemas to the latest internal value, and may reject unrecognized
-                      values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-                    type: string
                   key:
-                    description: the key containing the value
-                    type: string
-                  kind:
-                    description: 'Kind is a string value representing the REST resource
-                      this object represents. Servers may infer this from the endpoint
-                      the client submits requests to. Cannot be updated. In CamelCase.
-                      More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
                     type: string
                   name:
-                    description: the secret containing the key
                     type: string
                   namespace:
-                    description: The namespace containing the secret
                     type: string
                 required:
-                - key
                 - name
                 - namespace
+                - key
                 type: object
             type: object
-          consumerRef:
-            description: ConsumerRef is a reference to a particular consumer
-            type: string
           disabled:
-            description: Disabled set if the plugin is disabled or not
             type: boolean
-          kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-            type: string
-          metadata:
-            type: object
           plugin:
-            description: PluginName is the name of the plugin to which to apply the
-              config
             type: string
           protocols:
-            description: Protocols configures plugin to run on requests received on
-              specific protocols.
-            enum:
-            - http
-            - https
-            - grpc
-            - grpcs
-            - tcp
-            - tls
-            - udp
             items:
+              enum:
+              - http
+              - https
+              - grpc
+              - grpcs
+              - tcp
+              - tls
+              - udp
               type: string
             type: array
           run_on:
-            description: RunOn configures the plugin to run on the first or the second
-              or both nodes in case of a service mesh deployment.
             enum:
             - first
             - second
@@ -146,21 +92,14 @@ spec:
     storage: true
     subresources:
       status: {}
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
-  creationTimestamp: null
   name: kongconsumers.configuration.konghq.com
 spec:
+  conversion:
+    strategy: None
   group: configuration.konghq.com
   names:
     kind: KongConsumer
@@ -184,52 +123,28 @@ spec:
     name: v1
     schema:
       openAPIV3Schema:
-        description: KongConsumer is the Schema for the kongconsumers API
         properties:
-          apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-            type: string
           credentials:
-            description: Credentials are references to secrets containing a credential
-              to be provisioned in Kong.
             items:
               type: string
             type: array
           custom_id:
-            description: CustomID existing unique ID for the consumer - useful for
-              mapping Kong with users in your existing database
             type: string
-          kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-            type: string
-          metadata:
-            type: object
           username:
-            description: Username unique username of the consumer.
             type: string
         type: object
     served: true
     storage: true
     subresources:
       status: {}
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
   name: kongingresses.configuration.konghq.com
 spec:
+  conversion:
+    strategy: None
   group: configuration.konghq.com
   names:
     kind: KongIngress
@@ -426,21 +341,14 @@ spec:
                 minimum: 10
                 type: integer
             type: object
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
-  creationTimestamp: null
   name: kongplugins.configuration.konghq.com
 spec:
+  conversion:
+    strategy: None
   group: configuration.konghq.com
   names:
     kind: KongPlugin
@@ -474,92 +382,37 @@ spec:
     name: v1
     schema:
       openAPIV3Schema:
-        description: KongPlugin is the Schema for the kongplugins API
         properties:
-          apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-            type: string
           config:
-            description: Config contains the plugin configuration.
             type: object
             x-kubernetes-preserve-unknown-fields: true
           configFrom:
-            description: ConfigFrom references a secret containing the plugin configuration.
             properties:
-              apiVersion:
-                description: 'APIVersion defines the versioned schema of this representation
-                  of an object. Servers should convert recognized schemas to the latest
-                  internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-                type: string
-              kind:
-                description: 'Kind is a string value representing the REST resource
-                  this object represents. Servers may infer this from the endpoint
-                  the client submits requests to. Cannot be updated. In CamelCase.
-                  More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-                type: string
               secretKeyRef:
-                description: SecretValueFromSource represents the source of a secret
-                  value
                 properties:
-                  apiVersion:
-                    description: 'APIVersion defines the versioned schema of this
-                      representation of an object. Servers should convert recognized
-                      schemas to the latest internal value, and may reject unrecognized
-                      values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-                    type: string
                   key:
-                    description: the key containing the value
-                    type: string
-                  kind:
-                    description: 'Kind is a string value representing the REST resource
-                      this object represents. Servers may infer this from the endpoint
-                      the client submits requests to. Cannot be updated. In CamelCase.
-                      More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
                     type: string
                   name:
-                    description: the secret containing the key
                     type: string
-                required:
-                - key
-                - name
                 type: object
             type: object
-          consumerRef:
-            description: ConsumerRef is a reference to a particular consumer
-            type: string
           disabled:
-            description: Disabled set if the plugin is disabled or not
             type: boolean
-          kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-            type: string
-          metadata:
-            type: object
           plugin:
-            description: PluginName is the name of the plugin to which to apply the
-              config
             type: string
           protocols:
-            description: Protocols configures plugin to run on requests received on
-              specific protocols.
-            enum:
-            - http
-            - https
-            - grpc
-            - grpcs
-            - tcp
-            - tls
-            - udp
             items:
+              enum:
+              - http
+              - https
+              - grpc
+              - grpcs
+              - tcp
+              - tls
+              - udp
               type: string
             type: array
           run_on:
-            description: RunOn configures the plugin to run on the first or the second
-              or both nodes in case of a service mesh deployment.
             enum:
             - first
             - second
@@ -572,12 +425,6 @@ spec:
     storage: true
     subresources:
       status: {}
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
