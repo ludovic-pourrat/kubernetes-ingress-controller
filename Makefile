@@ -64,6 +64,7 @@ all: build
 
 .PHONY: clean
 clean:
+	@rm -rf build/
 	@rm -rf testbin/
 	@rm -rf bin/*
 	@rm -f coverage*.out
@@ -96,7 +97,7 @@ verify.tidy:
 	./hack/verify-tidy.sh
 
 .PHONY: verify.manifests
-verify.manifests:
+verify.manifests: kustomize
 	./hack/verify-manifests.sh
 
 # ------------------------------------------------------------------------------
@@ -104,12 +105,15 @@ verify.manifests:
 # ------------------------------------------------------------------------------
 
 .PHONY: manifests
-manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
-	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
-	go run hack/generators/manifests/main.go --directory config/crd/bases/
+manifests: manifests.crds manifests.single
+
+.PHONY: manifests.crds
+manifests.crds: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
+	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=build/config/crd/bases
+	go run hack/generators/manifests/main.go --input-directory build/config/crd/bases/ --output-directory config/crd/bases
 
 .PHONY: manifests.single
-manifests.single: ## Compose single-file deployment manifests from building blocks
+manifests.single: kustomize ## Compose single-file deployment manifests from building blocks
 	./hack/deploy/build-single-manifests.sh
 
 # ------------------------------------------------------------------------------
