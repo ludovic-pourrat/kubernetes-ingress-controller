@@ -7,5 +7,8 @@ resources:
 - validation-service.yaml
 - kong-ingress-dbless.yaml
 namespace: kong
-patchesStrategicMerge:
-- kong-ingress-crd-spec.yaml
+# TODO this is a hack to use the old KongIngress definition until https://github.com/Kong/kubernetes-ingress-controller/issues/1778 is complete
+# It is currently commented out because https://github.com/Kong/kubernetes-ingress-controller/pull/1763 has removed the generated version temporarily.
+# It should be un-commented once we start generating CRDs from types again.
+#patchesStrategicMerge:
+#- kong-ingress-crd-spec.yaml
