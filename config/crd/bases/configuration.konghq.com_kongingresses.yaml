@@ -205,6 +205,4 @@ spec:
     storage: true
     subresources:
       status: {}
-  conversion:
-    strategy: None
   preserveUnknownFields: false
