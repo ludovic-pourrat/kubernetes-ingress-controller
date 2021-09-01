@@ -105,7 +105,7 @@ verify.manifests: kustomize
 # ------------------------------------------------------------------------------
 
 .PHONY: manifests
-manifests: manifests.crds manifests.single
+manifests: manifests.crds manifests.single-v2
 
 .PHONY: manifests.crds
 manifests.crds: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
