@@ -113,7 +113,7 @@ manifests.crds: controller-gen ## Generate WebhookConfiguration, ClusterRole and
 	go run hack/generators/manifests/main.go --input-directory build/config/crd/bases/ --output-directory config/crd/bases
 
 .PHONY: manifests.single
-manifests.single: kustomize ## Compose single-file deployment manifests from building blocks
+manifests.single-v2: kustomize ## Compose single-file deployment manifests from building blocks
 	./hack/deploy/build-single-manifests.sh
 
 # ------------------------------------------------------------------------------
