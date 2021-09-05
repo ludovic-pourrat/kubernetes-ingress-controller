@@ -10,10 +10,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
+	gatewayapi_controllers "github.com/kong/kubernetes-ingress-controller/internal/controllers"
 	"github.com/kong/kubernetes-ingress-controller/internal/controllers/configuration"
 	"github.com/kong/kubernetes-ingress-controller/internal/ctrlutils"
 	"github.com/kong/kubernetes-ingress-controller/internal/proxy"
 	konghqcomv1 "github.com/kong/kubernetes-ingress-controller/pkg/apis/configuration/v1"
+	gatewayapi_v1alpha1 "sigs.k8s.io/gateway-api/apis/v1alpha1"
 )
 
 // -----------------------------------------------------------------------------
@@ -196,6 +198,7 @@ func setupControllers(mgr manager.Manager, proxy proxy.Proxy, c *Config) ([]Cont
 				IngressClassName: c.IngressClassName,
 			},
 		},
+
 		{
 			Enabled: c.KnativeIngressEnabled,
 			AutoHandler: crdExistsChecker{GVR: schema.GroupVersionResource{
@@ -209,6 +212,37 @@ func setupControllers(mgr manager.Manager, proxy proxy.Proxy, c *Config) ([]Cont
 				Scheme:           mgr.GetScheme(),
 				Proxy:            proxy,
 				IngressClassName: c.IngressClassName,
+			},
+		},
+
+		// Core Gateway API Controller(s)
+		{
+			Enabled: c.HTTPRouteEnabled,
+			AutoHandler: crdExistsChecker{GVR: schema.GroupVersionResource{
+				Group:    gatewayapi_v1alpha1.GroupVersion.Group,
+				Version:  gatewayapi_v1alpha1.GroupVersion.Version,
+				Resource: "httproutes",
+			}}.CRDExists,
+			Controller: &gatewayapi_controllers.HttpRouteReconciler{
+				Client:           mgr.GetClient(),
+				Log:              ctrl.Log.WithName("controllers").WithName("Route").WithName("HTTPRoute"),
+				Scheme:           mgr.GetScheme(),
+				GatewayClassName: c.GatewayClassName,
+			},
+		},
+
+		{
+			Enabled: c.HTTPRouteEnabled,
+			AutoHandler: crdExistsChecker{GVR: schema.GroupVersionResource{
+				Group:    gatewayapi_v1alpha1.GroupVersion.Group,
+				Version:  gatewayapi_v1alpha1.GroupVersion.Version,
+				Resource: "tlsroutes",
+			}}.CRDExists,
+			Controller: &gatewayapi_controllers.TlsRouteReconciler{
+				Log:              ctrl.Log.WithName("controllers").WithName("Route").WithName("TLSRoute"),
+				Client:           mgr.GetClient(),
+				Scheme:           mgr.GetScheme(),
+				GatewayClassName: c.GatewayClassName,
 			},
 		},
 	}

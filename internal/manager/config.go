@@ -55,6 +55,7 @@ type Config struct {
 	Concurrency          int
 	FilterTags           []string
 	WatchNamespaces      []string
+	GatewayClassName     string
 
 	// Ingress status
 	PublishService       string
@@ -73,6 +74,10 @@ type Config struct {
 	KongPluginEnabled        bool
 	KongConsumerEnabled      bool
 	ServiceEnabled           bool
+
+	// Gateway API toggling
+	HTTPRouteEnabled bool
+	TLSRouteEnabled  bool
 
 	// Admission Webhook server config
 	AdmissionServer admission.ServerConfig
@@ -126,6 +131,7 @@ func (c *Config) FlagSet() *pflag.FlagSet {
 	// Kubernetes configurations
 	flagSet.StringVar(&c.KubeconfigPath, "kubeconfig", "", "Path to the kubeconfig file.")
 	flagSet.StringVar(&c.IngressClassName, "ingress-class", annotations.DefaultIngressClass, `Name of the ingress class to route through this controller.`)
+	flagSet.StringVar(&c.IngressClassName, "gateway-class", annotations.DefaultGatewayClassName, `Name of the gateway class to route through this controller.`)
 	flagSet.BoolVar(&c.EnableLeaderElection, "leader-elect", false, "Enable leader election for controller manager. Enabling this will ensure there is only one active controller manager.")
 	flagSet.StringVar(&c.LeaderElectionID, "election-id", "5b374a9e.konghq.com", `Election id to use for status update.`)
 	flagSet.StringSliceVar(&c.FilterTags, "kong-admin-filter-tag", []string{"managed-by-ingress-controller"}, "The tag used to manage and filter entities in Kong. This flag can be specified multiple times to specify multiple tags. This setting will be silently ignored if the Kong instance has no tags support.")

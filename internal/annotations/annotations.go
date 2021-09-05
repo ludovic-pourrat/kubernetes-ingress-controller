@@ -57,6 +57,10 @@ const (
 	// DefaultIngressClass defines the default class used
 	// by Kong's ingress controller.
 	DefaultIngressClass = "kong"
+
+	// either operator or KIC itself
+	DefaultGatewayClassName = "kong"
+	// Gateway does not validate annotation, we should validate the SPEC
 )
 
 func validIngress(ingressAnnotationValue, ingressClass string, handling ClassMatching) bool {
