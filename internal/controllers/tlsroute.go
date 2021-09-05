@@ -2,10 +2,10 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-logr/logr"
 	"github.com/kong/kubernetes-ingress-controller/internal/proxy"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -53,19 +53,13 @@ func (r *TlsRouteReconciler) Reconcile(ctx context.Context, request reconcile.Re
 
 	// Fetch the TLSRoute from the cache.
 	tlsroute := &gatewayapi_v1alpha1.TLSRoute{}
-	err := r.client.Get(ctx, request.NamespacedName, tlsroute)
+	err := r.Client.Get(ctx, request.NamespacedName, tlsroute)
 	if errors.IsNotFound(err) {
-		r.eventHandler.OnDelete(&gatewayapi_v1alpha1.TLSRoute{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      request.Name,
-				Namespace: request.Namespace,
-			},
-		})
-		return reconcile.Result{}, nil
+		fmt.Printf("add tlsroute deletion logic.")
 	}
 
 	// Pass the new changed object off to the eventHandler.
-	r.eventHandler.OnAdd(tlsroute)
+	fmt.Printf("add tlsroute process logic.")
 
 	return reconcile.Result{}, nil
 }

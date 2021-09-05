@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/kong/kubernetes-ingress-controller/internal/proxy"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -53,18 +52,13 @@ func (r *HttpRouteReconciler) Reconcile(ctx context.Context, request reconcile.R
 	httpRoute := &gatewayapi_v1alpha1.HTTPRoute{}
 	err := r.Client.Get(ctx, request.NamespacedName, httpRoute)
 	if errors.IsNotFound(err) {
-		r.eventHandler.OnDelete(&gatewayapi_v1alpha1.HTTPRoute{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      request.Name,
-				Namespace: request.Namespace,
-			},
-		})
-		return reconcile.Result{}, nil
+		fmt.Printf("add httproute deletion logic here !")
 	}
 
 	fmt.Printf("First Pass, we should detect the HTTP Routes.")
 	// Pass the new changed object off to the eventHandler.
-	r.eventHandler.OnAdd(httpRoute)
+	//r.eventHandler.OnAdd(httpRoute)
+	fmt.Printf("add httproute process logic here.")
 
 	return reconcile.Result{}, nil
 }
