@@ -75,6 +75,7 @@ func Run(ctx context.Context, c *Config, diagnostic util.ConfigDumpDiagnostic) e
 		return fmt.Errorf("unable to setup controller as expected %w", err)
 	}
 	for _, c := range controllers {
+		fmt.Printf(" starting " + c.Name())
 		if err := c.MaybeSetupWithManager(mgr); err != nil {
 			return fmt.Errorf("unable to create controller %q: %w", c.Name(), err)
 		}
