@@ -162,6 +162,9 @@ func (c *Config) FlagSet() *pflag.FlagSet {
 	flagSet.BoolVar(&c.KongConsumerEnabled, "enable-controller-kongconsumer", true, "Enable the KongConsumer controller. ")
 	flagSet.BoolVar(&c.ServiceEnabled, "enable-controller-service", true, "Enable the Service controller.")
 
+	flagSet.BoolVar(&c.HTTPRouteEnabled, "enable-controller-httproute", true, "Enable the HTTPRoute controller.")
+	flagSet.BoolVar(&c.TLSRouteEnabled, "enable-controller-tlsroute", true, "Enable the TLSRoute controller.")
+
 	// Admission Webhook server config
 	flagSet.StringVar(&c.AdmissionServer.ListenAddr, "admission-webhook-listen", "off",
 		`The address to start admission controller on (ip:port).  Setting it to 'off' disables the admission controller.`)
