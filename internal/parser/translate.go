@@ -16,6 +16,7 @@ import (
 	"github.com/kong/kubernetes-ingress-controller/internal/kongstate"
 	"github.com/kong/kubernetes-ingress-controller/internal/util"
 	configurationv1beta1 "github.com/kong/kubernetes-ingress-controller/pkg/apis/configuration/v1beta1"
+	gatewayapi_v1alpha1 "sigs.k8s.io/gateway-api/apis/v1alpha1"
 )
 
 func serviceBackendPortToStr(port networkingv1.ServiceBackendPort) string {
@@ -466,6 +467,16 @@ func fromUDPIngressV1beta1(log logrus.FieldLogger, ingressList []*configurationv
 		}
 	}
 
+	return result
+}
+
+func fromHTTPRoute(log logrus.FieldLogger, httpRouteList []*gatewayapi_v1alpha1.HTTPRoute) ingressRules {
+	result := newIngressRules()
+	return result
+}
+
+func fromTLSRoute(log logrus.FieldLogger, tlsRouteList []*gatewayapi_v1alpha1.TLSRoute) ingressRules {
+	result := newIngressRules()
 	return result
 }
 

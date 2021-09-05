@@ -44,6 +44,8 @@ import (
 	"github.com/kong/kubernetes-ingress-controller/internal/annotations"
 	kongv1 "github.com/kong/kubernetes-ingress-controller/pkg/apis/configuration/v1"
 	kongv1beta1 "github.com/kong/kubernetes-ingress-controller/pkg/apis/configuration/v1beta1"
+
+	gatewayapi_v1alpha1 "sigs.k8s.io/gateway-api/apis/v1alpha1"
 )
 
 const (
@@ -84,6 +86,10 @@ type Storer interface {
 	ListGlobalKongClusterPlugins() ([]*kongv1.KongClusterPlugin, error)
 	ListKongConsumers() []*kongv1.KongConsumer
 	ListCACerts() ([]*corev1.Secret, error)
+
+	// GatewayAPI
+	ListHTTPRoute() ([]*gatewayapi_v1alpha1.HTTPRoute, error)
+	ListTLSRoute() ([]*gatewayapi_v1alpha1.TLSRoute, error)
 }
 
 // Store implements Storer and can be used to list Ingress, Services
@@ -494,6 +500,35 @@ func (s Store) ListKnativeIngresses() ([]*knative.Ingress, error) {
 		labels.NewSelector(),
 		func(ob interface{}) {
 			ing, ok := ob.(*knative.Ingress)
+			// this is implemented directly in store as s.isValidIngressClass only checks the value of the
+			// kubernetes.io/ingress.class annotation (annotations.ingressClassKey), not
+			// networking.knative.dev/ingress.class (knativeIngressClassKey)
+			if ok && s.validKnativeIngressClass(&ing.ObjectMeta) {
+				ingresses = append(ingresses, ing)
+			}
+		})
+	if err != nil {
+		return nil, err
+	}
+
+	sort.SliceStable(ingresses, func(i, j int) bool {
+		return strings.Compare(fmt.Sprintf("%s/%s", ingresses[i].Namespace, ingresses[i].Name),
+			fmt.Sprintf("%s/%s", ingresses[j].Namespace, ingresses[j].Name)) < 0
+	})
+	return ingresses, nil
+}
+
+func (s Store) ListHTTPRoute() ([]*gatewayapi_v1alpha1.HTTPRoute, error) {
+	var ingresses []*gatewayapi_v1alpha1.HTTPRoute
+	if s.stores.KnativeIngress == nil {
+		return ingresses, nil
+	}
+
+	err := cache.ListAll(
+		s.stores.HTTPRoute,
+		labels.NewSelector(),
+		func(ob interface{}) {
+			ing, ok := ob.(*gatewayapi_v1alpha1.HTTPRoute)
 			// this is implemented directly in store as s.isValidIngressClass only checks the value of the
 			// kubernetes.io/ingress.class annotation (annotations.ingressClassKey), not
 			// networking.knative.dev/ingress.class (knativeIngressClassKey)

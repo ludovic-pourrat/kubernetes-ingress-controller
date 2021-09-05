@@ -47,6 +47,9 @@ func parseAll(log logrus.FieldLogger, s store.Storer) ingressRules {
 	}
 	parsedKnative := fromKnativeIngress(log, knativeIngresses)
 
+	httpRoutes, err := s.ListHTTPRoute()
+	parsedHTTPRoute := fromHTTPRoute(log, httpRoutes)
+
 	return mergeIngressRules(parsedIngressV1beta1, parsedIngressV1, parsedTCPIngress, parsedUDPIngresses, parsedKnative)
 }
 
