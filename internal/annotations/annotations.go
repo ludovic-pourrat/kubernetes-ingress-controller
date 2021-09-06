@@ -58,9 +58,9 @@ const (
 	// by Kong's ingress controller.
 	DefaultIngressClass = "kong"
 
-	// either operator or KIC itself
-	DefaultGatewayClassName = "kong"
-	// Gateway does not validate annotation, we should validate the SPEC
+	// kong gateway class name
+	DefaultGatewayClassName  = "kong-gatewayclass"
+	GatewayAPIControllerName = "kong/kubernetes-ingress-controller"
 )
 
 func validIngress(ingressAnnotationValue, ingressClass string, handling ClassMatching) bool {

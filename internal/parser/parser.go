@@ -50,7 +50,10 @@ func parseAll(log logrus.FieldLogger, s store.Storer) ingressRules {
 	httpRoutes, err := s.ListHTTPRoute()
 	parsedHTTPRoute := fromHTTPRoute(log, httpRoutes)
 
-	return mergeIngressRules(parsedIngressV1beta1, parsedIngressV1, parsedTCPIngress, parsedUDPIngresses, parsedKnative)
+	tlsRoutes, err := s.ListTLSRoute()
+	parsedTLSRoute := fromTLSRoute(log, tlsRoutes)
+	return mergeIngressRules(parsedIngressV1beta1, parsedIngressV1, parsedTCPIngress, parsedUDPIngresses, parsedKnative,
+		parsedHTTPRoute, parsedTLSRoute)
 }
 
 // Build creates a Kong configuration from Ingress and Custom resources

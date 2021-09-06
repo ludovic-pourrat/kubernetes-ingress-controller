@@ -215,7 +215,37 @@ func setupControllers(mgr manager.Manager, proxy proxy.Proxy, c *Config) ([]Cont
 			},
 		},
 
+		//-------
 		// Core Gateway API Controller(s)
+		//-------
+		{
+			Enabled: c.GatewayClassEnabled,
+			AutoHandler: crdExistsChecker{GVR: schema.GroupVersionResource{
+				Group:    gatewayapi_v1alpha1.GroupVersion.Group,
+				Version:  gatewayapi_v1alpha1.GroupVersion.Version,
+				Resource: "gatewayclasses",
+			}}.CRDExists,
+			Controller: &gatewayapi_controllers.GatewayClassReconciler{
+				Client:     mgr.GetClient(),
+				Log:        ctrl.Log.WithName("controllers").WithName("gatewayclass"),
+				Scheme:     mgr.GetScheme(),
+				Controller: c.GatewayAPIControllerName,
+			},
+		},
+		{
+			Enabled: c.GatewayEnabled,
+			AutoHandler: crdExistsChecker{GVR: schema.GroupVersionResource{
+				Group:    gatewayapi_v1alpha1.GroupVersion.Group,
+				Version:  gatewayapi_v1alpha1.GroupVersion.Version,
+				Resource: "gateways",
+			}}.CRDExists,
+			Controller: &gatewayapi_controllers.GatewayReconciler{
+				Client:           mgr.GetClient(),
+				Log:              ctrl.Log.WithName("controllers").WithName("gateway"),
+				Scheme:           mgr.GetScheme(),
+				GatewayClassName: c.GatewayClassName,
+			},
+		},
 		{
 			Enabled: c.HTTPRouteEnabled,
 			AutoHandler: crdExistsChecker{GVR: schema.GroupVersionResource{
@@ -224,10 +254,9 @@ func setupControllers(mgr manager.Manager, proxy proxy.Proxy, c *Config) ([]Cont
 				Resource: "httproutes",
 			}}.CRDExists,
 			Controller: &gatewayapi_controllers.HttpRouteReconciler{
-				Client:           mgr.GetClient(),
-				Log:              ctrl.Log.WithName("controllers").WithName("Route").WithName("HTTPRoute"),
-				Scheme:           mgr.GetScheme(),
-				GatewayClassName: c.GatewayClassName,
+				Client: mgr.GetClient(),
+				Log:    ctrl.Log.WithName("controllers").WithName("Route").WithName("HTTPRoute"),
+				Scheme: mgr.GetScheme(),
 			},
 		},
 
@@ -239,10 +268,9 @@ func setupControllers(mgr manager.Manager, proxy proxy.Proxy, c *Config) ([]Cont
 				Resource: "tlsroutes",
 			}}.CRDExists,
 			Controller: &gatewayapi_controllers.TlsRouteReconciler{
-				Log:              ctrl.Log.WithName("controllers").WithName("Route").WithName("TLSRoute"),
-				Client:           mgr.GetClient(),
-				Scheme:           mgr.GetScheme(),
-				GatewayClassName: c.GatewayClassName,
+				Log:    ctrl.Log.WithName("controllers").WithName("Route").WithName("TLSRoute"),
+				Client: mgr.GetClient(),
+				Scheme: mgr.GetScheme(),
 			},
 		},
 	}

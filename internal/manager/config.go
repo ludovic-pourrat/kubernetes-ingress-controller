@@ -48,14 +48,15 @@ type Config struct {
 	KongCustomEntitiesSecret string
 
 	// Kubernetes configurations
-	KubeconfigPath       string
-	IngressClassName     string
-	EnableLeaderElection bool
-	LeaderElectionID     string
-	Concurrency          int
-	FilterTags           []string
-	WatchNamespaces      []string
-	GatewayClassName     string
+	KubeconfigPath           string
+	IngressClassName         string
+	EnableLeaderElection     bool
+	LeaderElectionID         string
+	Concurrency              int
+	FilterTags               []string
+	WatchNamespaces          []string
+	GatewayClassName         string
+	GatewayAPIControllerName string
 
 	// Ingress status
 	PublishService       string
@@ -76,8 +77,10 @@ type Config struct {
 	ServiceEnabled           bool
 
 	// Gateway API toggling
-	HTTPRouteEnabled bool
-	TLSRouteEnabled  bool
+	GatewayClassEnabled bool
+	GatewayEnabled      bool
+	HTTPRouteEnabled    bool
+	TLSRouteEnabled     bool
 
 	// Admission Webhook server config
 	AdmissionServer admission.ServerConfig
@@ -131,7 +134,8 @@ func (c *Config) FlagSet() *pflag.FlagSet {
 	// Kubernetes configurations
 	flagSet.StringVar(&c.KubeconfigPath, "kubeconfig", "", "Path to the kubeconfig file.")
 	flagSet.StringVar(&c.IngressClassName, "ingress-class", annotations.DefaultIngressClass, `Name of the ingress class to route through this controller.`)
-	flagSet.StringVar(&c.IngressClassName, "gateway-class", annotations.DefaultGatewayClassName, `Name of the gateway class to route through this controller.`)
+	flagSet.StringVar(&c.GatewayClassName, "gateway-class", annotations.DefaultGatewayClassName, `Name of the gateway class to route through this controller.`)
+	flagSet.StringVar(&c.GatewayAPIControllerName, "gateway-class", annotations.GatewayAPIControllerName, `Name of the controller that reconciles gateway api resources.`)
 	flagSet.BoolVar(&c.EnableLeaderElection, "leader-elect", false, "Enable leader election for controller manager. Enabling this will ensure there is only one active controller manager.")
 	flagSet.StringVar(&c.LeaderElectionID, "election-id", "5b374a9e.konghq.com", `Election id to use for status update.`)
 	flagSet.StringSliceVar(&c.FilterTags, "kong-admin-filter-tag", []string{"managed-by-ingress-controller"}, "The tag used to manage and filter entities in Kong. This flag can be specified multiple times to specify multiple tags. This setting will be silently ignored if the Kong instance has no tags support.")
@@ -162,6 +166,9 @@ func (c *Config) FlagSet() *pflag.FlagSet {
 	flagSet.BoolVar(&c.KongConsumerEnabled, "enable-controller-kongconsumer", true, "Enable the KongConsumer controller. ")
 	flagSet.BoolVar(&c.ServiceEnabled, "enable-controller-service", true, "Enable the Service controller.")
 
+	// kubernetes gateway api toggling
+	flagSet.BoolVar(&c.GatewayClassEnabled, "enable-controller-gatewayclass", true, "Enable the gatewayclass controller.")
+	flagSet.BoolVar(&c.GatewayEnabled, "enable-controller-gateway", true, "Enable the gateway controller.")
 	flagSet.BoolVar(&c.HTTPRouteEnabled, "enable-controller-httproute", true, "Enable the HTTPRoute controller.")
 	flagSet.BoolVar(&c.TLSRouteEnabled, "enable-controller-tlsroute", true, "Enable the TLSRoute controller.")
 

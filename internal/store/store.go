@@ -88,6 +88,8 @@ type Storer interface {
 	ListCACerts() ([]*corev1.Secret, error)
 
 	// GatewayAPI
+	ListGatewayClass() ([]*gatewayapi_v1alpha1.GatewayClass, error)
+	ListGateway() ([]*gatewayapi_v1alpha1.Gateway, error)
 	ListHTTPRoute() ([]*gatewayapi_v1alpha1.HTTPRoute, error)
 	ListTLSRoute() ([]*gatewayapi_v1alpha1.TLSRoute, error)
 }
@@ -130,6 +132,11 @@ type CacheStores struct {
 
 	KnativeIngress cache.Store
 
+	HTTPRoute    cache.Store
+	TLSRoute     cache.Store
+	GatewayClass cache.Store
+	Gateway      cache.Store
+
 	l *sync.RWMutex
 }
 
@@ -147,6 +154,12 @@ func NewCacheStores() (c CacheStores) {
 	c.TCPIngress = cache.NewStore(keyFunc)
 	c.UDPIngress = cache.NewStore(keyFunc)
 	c.KongIngress = cache.NewStore(keyFunc)
+
+	c.HTTPRoute = cache.NewStore(keyFunc)
+	c.TLSRoute = cache.NewStore(keyFunc)
+	c.GatewayClass = cache.NewStore(keyFunc)
+	c.Gateway = cache.NewStore(keyFunc)
+
 	c.l = &sync.RWMutex{}
 	return
 }
@@ -229,12 +242,22 @@ func (c CacheStores) Get(obj runtime.Object) (item interface{}, exists bool, err
 		return c.TCPIngress.Get(obj)
 	case *kongv1beta1.UDPIngress:
 		return c.UDPIngress.Get(obj)
+
 	// ----------------------------------------------------------------------------
 	// 3rd Party API Support
 	// ----------------------------------------------------------------------------
 	case *knative.Ingress:
 		return c.KnativeIngress.Get(obj)
+
+	// ---
+	// Gateway API Support
+	// ---
+	case *gatewayapi_v1alpha1.HTTPRoute:
+		return c.HTTPRoute.Get(obj)
+	case *gatewayapi_v1alpha1.TLSRoute:
+		return c.TLSRoute.Get(obj)
 	}
+
 	return nil, false, fmt.Errorf("%T is not a supported cache object type", obj)
 }
 
@@ -487,6 +510,16 @@ func (s Store) validKnativeIngressClass(objectMeta *metav1.ObjectMeta) bool {
 	return ingressAnnotationValue == s.ingressClass
 }
 
+func (s Store) validGatewayAPIResource(objectMeta *metav1.ObjectMeta) bool {
+	fmt.Printf("some GatewayAPI resource generic validation.")
+	return true
+}
+
+func (s Store) validGatewayClass(objectMeta *metav1.ObjectMeta) bool {
+	fmt.Printf("Validating Gateway API Gateway Class.")
+	return true
+}
+
 // ListKnativeIngresses returns the list of Knative Ingresses from
 // ingresses.networking.internal.knative.dev group.
 func (s Store) ListKnativeIngresses() ([]*knative.Ingress, error) {
@@ -520,19 +553,79 @@ func (s Store) ListKnativeIngresses() ([]*knative.Ingress, error) {
 
 func (s Store) ListHTTPRoute() ([]*gatewayapi_v1alpha1.HTTPRoute, error) {
 	var ingresses []*gatewayapi_v1alpha1.HTTPRoute
-	if s.stores.KnativeIngress == nil {
+	if s.stores.HTTPRoute == nil {
 		return ingresses, nil
 	}
 
 	err := cache.ListAll(
 		s.stores.HTTPRoute,
-		labels.NewSelector(),
+		labels.NewSelector(), // we do not actually use selector atm.
 		func(ob interface{}) {
 			ing, ok := ob.(*gatewayapi_v1alpha1.HTTPRoute)
-			// this is implemented directly in store as s.isValidIngressClass only checks the value of the
-			// kubernetes.io/ingress.class annotation (annotations.ingressClassKey), not
-			// networking.knative.dev/ingress.class (knativeIngressClassKey)
-			if ok && s.validKnativeIngressClass(&ing.ObjectMeta) {
+			// add validation logic
+			if ok && s.validGatewayAPIResource(&ing.ObjectMeta) {
+				ingresses = append(ingresses, ing)
+			}
+		})
+	if err != nil {
+		return nil, err
+	}
+
+	sort.SliceStable(ingresses, func(i, j int) bool {
+		return strings.Compare(fmt.Sprintf("%s/%s", ingresses[i].Namespace, ingresses[i].Name),
+			fmt.Sprintf("%s/%s", ingresses[j].Namespace, ingresses[j].Name)) < 0
+	})
+	return ingresses, nil
+}
+
+func (s Store) ListGatewayClass() ([]*gatewayapi_v1alpha1.GatewayClass, error) {
+	var ingresses []*gatewayapi_v1alpha1.GatewayClass
+	if s.stores.GatewayClass == nil {
+		return ingresses, nil
+	}
+
+	err := cache.ListAll(
+		s.stores.HTTPRoute,
+		labels.NewSelector(), // we do not actually use selector atm.
+		func(ob interface{}) {
+			ing, ok := ob.(*gatewayapi_v1alpha1.GatewayClass)
+			// add validation logic
+			if ok && s.validGatewayClass(&ing.ObjectMeta) {
+				// we do not need process this ingress, just need indicate controller is able to handle this kinds of gateway
+				//ingresses = append(ingresses, ing)
+				fmt.Printf("this is the gatewayclass managed by KIC. KIC is able to handle all gateways defined by this GatewayClass")
+			}
+		})
+	if err != nil {
+		return nil, err
+	}
+
+	sort.SliceStable(ingresses, func(i, j int) bool {
+		return strings.Compare(fmt.Sprintf("%s/%s", ingresses[i].Namespace, ingresses[i].Name),
+			fmt.Sprintf("%s/%s", ingresses[j].Namespace, ingresses[j].Name)) < 0
+	})
+	// return nothing, maybe a better place thank
+	return ingresses, nil
+}
+
+func (s Store) ListGateway() ([]*gatewayapi_v1alpha1.Gateway, error) {
+	var ingresses []*gatewayapi_v1alpha1.Gateway
+	return ingresses, nil
+}
+
+func (s Store) ListTLSRoute() ([]*gatewayapi_v1alpha1.TLSRoute, error) {
+	var ingresses []*gatewayapi_v1alpha1.TLSRoute
+
+	if s.stores.TLSRoute == nil {
+		return ingresses, nil
+	}
+
+	err := cache.ListAll(
+		s.stores.TLSRoute,
+		labels.NewSelector(),
+		func(ob interface{}) {
+			ing, ok := ob.(*gatewayapi_v1alpha1.TLSRoute)
+			if ok && s.validGatewayAPIResource(&ing.ObjectMeta) {
 				ingresses = append(ingresses, ing)
 			}
 		})
@@ -780,6 +873,12 @@ func mkObjFromGVK(gvk schema.GroupVersionKind) (runtime.Object, error) {
 		return &kongv1.ConfigSource{}, nil
 	case knative.SchemeGroupVersion.WithKind("Ingress"):
 		return &knative.Ingress{}, nil
+
+	case gatewayapi_v1alpha1.SchemeGroupVersion.WithKind("HTTPRoute"):
+		return &gatewayapi_v1alpha1.HTTPRoute{}, nil
+	case gatewayapi_v1alpha1.SchemeGroupVersion.WithKind("TLSRoute"):
+		return &gatewayapi_v1alpha1.TLSRoute{}, nil
+
 	default:
 		return nil, fmt.Errorf("%s is not a supported runtime.Object", gvk)
 	}
