@@ -82,7 +82,7 @@ func (r *GatewayReconciler) Reconcile(ctx context.Context, request reconcile.Req
 	} else if err != nil {
 		// Error reading the object, so requeue the request.
 		return reconcile.Result{}, fmt.Errorf("failed to get gateway %s/%s: %w", request.Namespace, request.Name, err)
-	} else if !r.hasKongOwnedClass(gw) {
+	} else if has, _ := r.hasKongOwnedClass(gw); !has {
 		fmt.Printf("this is not kong owned gateway.")
 		return reconcile.Result{}, nil
 	}
