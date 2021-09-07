@@ -2,6 +2,7 @@ package status
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/kong/kubernetes-ingress-controller/internal/errors"
 
@@ -36,7 +37,7 @@ func computeGatewayClassAdmittedCondition(errs field.ErrorList) metav1.Condition
 }
 
 func mergeConditions(conditions []metav1.Condition, updates ...metav1.Condition) []metav1.Condition {
-	now := metav1.NewTime(clock.Now())
+	now := metav1.NewTime(time.Now())
 	var additions []metav1.Condition
 	for i, update := range updates {
 		add := true

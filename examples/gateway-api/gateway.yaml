@@ -9,7 +9,7 @@ kind: GatewayClass
 metadata:
   name: kong-gatewayclass
 spec:
-  controller: kong
+  controller: kong/kubernetes-ingress-controller
 ---
 apiVersion: networking.x-k8s.io/v1alpha1
 kind: Gateway
