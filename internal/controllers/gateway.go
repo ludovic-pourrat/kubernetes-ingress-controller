@@ -53,15 +53,15 @@ func (r *GatewayReconciler) hasMatchingController(obj client.Object) bool {
 	return false
 }
 
-func (r *GatewayReconciler) hasKongOwnedClass(gw *gatewayapi_v1alpha1.Gateway) bool {
+func (r *GatewayReconciler) hasKongOwnedClass(gw *gatewayapi_v1alpha1.Gateway) (bool, error) {
 	gc := &gatewayapi_v1alpha1.Gateway{}
 	if err := r.Client.Get(r.ctx, types.NamespacedName{Name: gw.Spec.GatewayClassName}, gc); err != nil {
-		return false
+		return false, fmt.Errorf("failed to read gateway class name")
 	}
 	if gc.Spec.GatewayClassName != r.GatewayClassName {
-		return false
+		return false, fmt.Errorf("this is not the expected gatewayclass name")
 	}
-	return true
+	return true, nil
 }
 
 func (r *GatewayReconciler) SetupWithManager(mgr ctrl.Manager) error {
