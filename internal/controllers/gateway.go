@@ -53,19 +53,19 @@ func (r *GatewayReconciler) hasMatchingController(obj client.Object) bool {
 	return false
 }
 
-func (r *GatewayReconciler) hasKongOwnedClass(gw *gatewayapi_v1alpha1.Gateway) (bool, error) {
-	gc := &gatewayapi_v1alpha1.GatewayClass{}
+func (r *GatewayReconciler) hasKongOwnedClass(gw *gatewayapi_v1alpha1.Gateway) bool {
+	gc := &gatewayapi_v1alpha1.Gateway{}
 	if err := r.Client.Get(r.ctx, types.NamespacedName{Name: gw.Spec.GatewayClassName}, gc); err != nil {
-		return false, fmt.Errorf("failed to get gatewayclass %s: %w", gw.Spec.GatewayClassName, err)
+		return false
 	}
-	if gc.Spec.Controller != r.gatewayClassControllerName {
-		return false, nil
+	if gc.Spec.GatewayClassName != r.GatewayClassName {
+		return false
 	}
-	return true, nil
+	return true
 }
 
 func (r *GatewayReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).For(&gatewayapi_v1alpha1.GatewayClass{}).Complete(r)
+	return ctrl.NewControllerManagedBy(mgr).For(&gatewayapi_v1alpha1.Gateway{}).Complete(r)
 }
 
 func (r *GatewayReconciler) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
@@ -78,16 +78,19 @@ func (r *GatewayReconciler) Reconcile(ctx context.Context, request reconcile.Req
 		r.Log.WithName(request.Name).WithName(request.Namespace).Info("failed to find gateway")
 
 		fmt.Printf("Need delete the gateway object.")
+		return reconcile.Result{}, nil
 	} else if err != nil {
 		// Error reading the object, so requeue the request.
 		return reconcile.Result{}, fmt.Errorf("failed to get gateway %s/%s: %w", request.Namespace, request.Name, err)
+	} else if !r.hasKongOwnedClass(gw) {
+		fmt.Printf("this is not kong owned gateway.")
+		return reconcile.Result{}, nil
 	}
 
-	// TODO: Ensure the gateway by creating manage infrastructure, i.e. the Envoy service.
-	// xref: https://github.com/projectcontour/contour/issues/3545
-
-	// Pass the gateway off to the eventHandler.
-	//r.eventHandler.OnAdd(gw)
+	// update the kong Admin API with the gateway
+	if err := r.Proxy.UpdateObject(gw); err != nil {
+		return ctrl.Result{}, err
+	}
 
 	return reconcile.Result{}, nil
 }
