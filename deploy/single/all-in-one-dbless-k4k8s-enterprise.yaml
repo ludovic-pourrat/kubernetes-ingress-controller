@@ -1259,6 +1259,8 @@ spec:
           successThreshold: 1
           timeoutSeconds: 1
       - env:
+        - name: CONTROLLER_LOG_LEVEL
+          value: debug
         - name: CONTROLLER_KONG_ADMIN_URL
           value: https://127.0.0.1:8444
         - name: CONTROLLER_KONG_ADMIN_TLS_SKIP_VERIFY
